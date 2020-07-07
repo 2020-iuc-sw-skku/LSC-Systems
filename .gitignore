@@ -1,0 +1,13 @@
+# Bytecode
+__pycache__/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Visual Studio Code
+.vscode/
+
+data/*
+feature/*
+!data/.gitkeep
+!feature/.gitkeep
