@@ -41,5 +41,8 @@ if __name__ == "__main__":
     features = [
         pd.read_pickle(os.path.join(PATH_FEATURE, fea)) for fea in selected_features
     ]
+    for fea in features:
+      fea.reset_index(inplace=True)
+      
     joined_features = pd.concat(features, axis=1)
     joined_features.to_csv(os.path.join(PATH_FEATURE, "joined.csv"))
