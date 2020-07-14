@@ -1,7 +1,8 @@
 import os
 import pandas as pd
-from sklearn.externals import joblib
+import joblib
 from setup import PATH, CONFIG
+
 
 def predict_label(path, features):
     """
@@ -14,19 +15,20 @@ def predict_label(path, features):
     Returns:
         pd.DataFrame: predicted labels
     """
-    
+
     models = os.listdir(path)
     models = [i for i in models if ".pkl" in i]
 
     predicted_labels = []
     for mod in models:
-        #load dumped model
+        # load dumped model
         model = joblib.load(os.path.join(path, mod))
         predict = model.predict(features)
         predicted_labels.append(predict)
 
     predicted_labels = pd.DataFrame(predicted_labels).T
     return predicted_labels
+
 
 if __name__ == "__main__":
     PATH_FEATURE = os.path.join(PATH, CONFIG["PATH"]["PATH_FEATURE"])
