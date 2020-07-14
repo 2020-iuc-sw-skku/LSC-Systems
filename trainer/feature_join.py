@@ -43,6 +43,7 @@ if __name__ == "__main__":
     ]
     for fea in features:
       fea.reset_index(inplace=True)
+      fea.fillna(0, inplace=True)
       
     joined_features = pd.concat(features, axis=1)
     joined_features.to_csv(os.path.join(PATH_FEATURE, "joined.csv"))
