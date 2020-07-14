@@ -147,26 +147,53 @@ def extract_geometry(x):
     geometry["prop_solidity"] = prop_x.solidity
 
     return pd.Series(geometry)
+    
 
+def extract_distance(x):
 
-def extract_polar(x):
-    pass
+    feature_name = lambda s, x: f"{s}_{str(x).zfill(2)}"
+
+    coor = np.argwhere(x==2)-(np.array(x.shape)//2)
+    radius = np.linalg.norm(coor, ord=2, axis=1)
+
+    dist = {}
+
+    # polar accumulate 
+    dist_y, _ = np.histogram(radius)
+    dist_x = np.linspace(1, dist_y.size, dist_y.size)
+
+    dist_interpolate = interp1d(dist_x, dist_y, kind='cubic')
+    new_dist_x = np.linspace(1, dist_y.size, 20)
+    new_dist_y = dist_interpolate(new_dist_x)/np.linspace(1, new_dist_x.size, new_dist_x.size)
+    
+    for i in range(20):
+        dist[feature_name('dist_value', i+1)] = new_dist_y[i]
+
+    dist[feature_name('dist', 'mean')] = np.mean(new_dist_y)
+    dist[feature_name('dist', 'std')] = np.std(new_dist_y)
+    dist[feature_name('dist', 'max')] = np.max(new_dist_y)
+    dist[feature_name('dist', 'min')] = np.min(new_dist_y)
+    dist[feature_name('dist', 'argmax')] = np.argmax(new_dist_y)
+    dist[feature_name('dist', 'argmin')] = np.argmin(new_dist_y)
+
+    return pd.Series(dist)
 
 
 if __name__ == "__main__":
+
     PATH_DATA = os.path.join(PATH, CONFIG["PATH"]["PATH_DATA"])
     PATH_FEATURE = os.path.join(PATH, CONFIG["PATH"]["PATH_FEATURE"])
 
-    data = pd.read_pickle(os.path.join(PATH_DATA, "processed_data.pkl"))
+    data = pd.read_pickle(os.path.join(DATA_PATH, 'sample.pkl'))
 
-    density_based_4x4 = data["wafer_map"].apply(extract_density)
-    density_based_5x5 = data["wafer_map"].apply(extract_density, args=(7,))
-    radon_based = data["wafer_map"].apply(extract_radon)
-    geometry_based = data["wafer_map"].apply(extract_geometry)
-    # polar_based = data['wafer_map'].apply(extract_polar)
+    density_based = data['wafer_map'].apply(extract_density, args=(6,))
+    radon_based =  data['wafer_map'].apply(extract_radon)
+    geometry_based =  data['wafer_map'].apply(extract_geometry)
+    distance_based = data['wafer_map'].apply(extract_distance)
 
-    density_based_4x4.to_pickle(os.path.join(PATH_FEATURE, "density_based_4x4.pkl"))
-    density_based_5x5.to_pickle(os.path.join(PATH_FEATURE, "density_based_5x5.pkl"))
-    radon_based.to_pickle(os.path.join(PATH_FEATURE, "radon_based.pkl"))
-    geometry_based.to_pickle(os.path.join(PATH_FEATURE, "geometry_based.pkl"))
-    # polar_based.to_pickle(os.path.join(PATH_FEATURE, 'polar_based.pkl'))
+    density_based.to_pickle(os.path.join(FEATURE_PATH, 'sample_density_based_4x4.pkl'))
+    radon_based.to_pickle(os.path.join(FEATURE_PATH, 'sample_radon_based.pkl'))
+    geometry_based.to_pickle(os.path.join(FEATURE_PATH, 'sample_geometry_based.pkl'))
+    distance_based.to_pickle(os.path.join(FEATURE_PATH, 'sample_distance_based.pkl'))
+
+
