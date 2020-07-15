@@ -6,15 +6,14 @@ from setup import PATH, CONFIG
 
 
 def select_feature(path):
-    # TODO: Fill in docstring @illuminoplanet
     """
-    [summary]
+    Join selected features
 
     Args:
-        path ([type]): [description]
+        path (str): Directory where features are saved as .pkl.
 
     Returns:
-        [type]: [description]
+        list: list of pickle files of selected features
     """
 
     features = os.listdir(path)
@@ -42,8 +41,8 @@ if __name__ == "__main__":
         pd.read_pickle(os.path.join(PATH_FEATURE, fea)) for fea in selected_features
     ]
     for fea in features:
-      fea.reset_index(inplace=True)
-      fea.fillna(0, inplace=True)
-      
+        fea.reset_index(inplace=True)
+        fea.fillna(0, inplace=True)
+
     joined_features = pd.concat(features, axis=1)
     joined_features.to_csv(os.path.join(PATH_FEATURE, "joined.csv"))
