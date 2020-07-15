@@ -186,14 +186,14 @@ if __name__ == "__main__":
     PATH_DATA = os.path.join(PATH, CONFIG["PATH"]["PATH_DATA"])
     PATH_FEATURE = os.path.join(PATH, CONFIG["PATH"]["PATH_FEATURE"])
 
-    data = pd.read_pickle(os.path.join(DATA_PATH, "sample.pkl"))
+    data = pd.read_pickle(os.path.join(PATH_DATA, "sample.pkl"))
 
     density_based = data["wafer_map"].apply(extract_density, args=(6,))
     radon_based = data["wafer_map"].apply(extract_radon)
     geometry_based = data["wafer_map"].apply(extract_geometry)
     distance_based = data["wafer_map"].apply(extract_distance)
 
-    density_based.to_pickle(os.path.join(FEATURE_PATH, "sample_density_based_4x4.pkl"))
-    radon_based.to_pickle(os.path.join(FEATURE_PATH, "sample_radon_based.pkl"))
-    geometry_based.to_pickle(os.path.join(FEATURE_PATH, "sample_geometry_based.pkl"))
-    distance_based.to_pickle(os.path.join(FEATURE_PATH, "sample_distance_based.pkl"))
+    density_based.to_pickle(os.path.join(PATH_FEATURE, "sample_density_based_4x4.pkl"))
+    radon_based.to_pickle(os.path.join(PATH_FEATURE, "sample_radon_based.pkl"))
+    geometry_based.to_pickle(os.path.join(PATH_FEATURE, "sample_geometry_based.pkl"))
+    distance_based.to_pickle(os.path.join(PATH_FEATURE, "sample_distance_based.pkl"))
