@@ -8,7 +8,7 @@ from setup import *
 
 
 def dump_model(model, name):
-    PATH_PREDICT = CONFIG["PATH"]["PATH_PREDICT"]
+    PATH_PREDICT = os.path.join(PATH, CONFIG["PATH"]["PATH_PREDICT"])
     dump(model, os.path.join(PATH_PREDICT, name))
 
 
