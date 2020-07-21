@@ -12,7 +12,7 @@ def select_model(path):
     pickles = [i for i in os.listdir(path) if i[-4:] == ".pkl"]
 
     if not pickles:
-        print("No features found.")
+        print("No models found.")
         return []
 
     print(f"{len(pickles)} models found. Select models to use.")
