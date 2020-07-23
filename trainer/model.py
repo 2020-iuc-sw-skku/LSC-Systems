@@ -53,12 +53,8 @@ def create_ann():
 
 
 def create_sve():
-    models = []
-    models.append(create_lr())
-    models.append(create_rf())
-    models.append(create_gbm())
-    models.append(create_ann())
-    model_sve = VotingClassifier(models, voting="soft", n_jobs=-1)
+    models = zip(('LR', 'RF', 'GBM', 'ANN'), (create_lr(), create_rf(), create_gbm(), create_ann()))
+    model_sve = VotingClassifier(list(models), voting="soft", n_jobs=-1)
     dump_model(model_sve, "model_sve")
 
 
