@@ -3,11 +3,14 @@ import sys
 import pandas as pd
 import numpy as np
 from math import log10
+import math
 from skimage.transform import radon as radon_transform
 from skimage.measure import label, regionprops
 from scipy.interpolate import interp1d
 from scipy.stats import mode
 from setup import PATH, CONFIG
+from skimage.feature import greycoprops, greycomatrix
+from sklearn.cluster import OPTICS, cluster_optics_dbscan
 
 
 def extract_density(x, num=6):
@@ -181,19 +184,74 @@ def extract_distance(x):
     return pd.Series(dist)
 
 
+def extract_texture(x):
+    feature_name = lambda s, x, y: f"{s}_{str(x).zfill(2)}_{str(y)}"
+    text = {}
+    props = ["dissimilarity", "contrast", "homogeneity", "energy", "correlation"]
+    angles = [0, np.pi / 4, np.pi / 2, np.pi * 3 / 4]  # 4 angles
+    glcm = greycomatrix(x, [1], angles)
+    for f in props:
+        for i in range(4):
+            text[feature_name("text", f, i)] = greycoprops(glcm, f)[0][i]
+
+    return pd.Series(text)
+
+
+def get_optics(x):
+
+    x[x == 1] = 0
+    coor = np.argwhere(x == 2)
+    optic = OPTICS(min_samples=2, eps=3).fit(coor)
+
+    coor = coor[:, 0], coor[:, 1]
+    x[coor] = optic.labels_ + 1
+
+    return x
+
+
+def calculate_area(x):
+    cluster_num = np.unique(x)
+    cluster_num = np.delete(cluster_num, 0)
+
+    cnt_array = np.array([])
+    for num in cluster_num:
+        cnt = len(x[x == num])
+        cnt_array = np.append(cnt_array, cnt)
+
+    temp = cnt_array.copy()
+    temp.sort()
+    max_ = temp[-3 if len(temp) >= 3 else -1]
+
+    for num in cluster_num:
+        if cnt_array[num - 1] < max_:
+            x[x == num] = 0
+
+    return x
+
+
+# 지금 OPTICS 구현한 거 커밋할거야? 넹
+# 저걸로 커밋할 파일 올리고 근데 그 깃헙에서는 저거 브랜치 만들었는데 여기서 다시 만드는거??
+# 로컬에서 만들어야될텐데
+
 if __name__ == "__main__":
 
     PATH_DATA = os.path.join(PATH, CONFIG["PATH"]["PATH_DATA"])
     PATH_FEATURE = os.path.join(PATH, CONFIG["PATH"]["PATH_FEATURE"])
 
     data = pd.read_pickle(os.path.join(PATH_DATA, "sample.pkl"))
+    optics = data["wafer_map"].apply(get_optics)
+    data_OPTICS = pd.DataFrame(optics)
+    denoised = data_OPTICS["wafer_map"].apply(calculate_area)
+    data_denoised = pd.DataFrame(denoised)
 
-    density_based = data["wafer_map"].apply(extract_density, args=(6,))
-    radon_based = data["wafer_map"].apply(extract_radon)
-    geometry_based = data["wafer_map"].apply(extract_geometry)
-    distance_based = data["wafer_map"].apply(extract_distance)
+    density_based = data_denoised["wafer_map"].apply(extract_density, args=(6,))
+    radon_based = data_denoised["wafer_map"].apply(extract_radon)
+    geometry_based = data_denoised["wafer_map"].apply(extract_geometry)
+    distance_based = data_denoised["wafer_map"].apply(extract_distance)
+    texture_based = data_denoised["wafer_map"].apply(extract_texture)
 
     density_based.to_pickle(os.path.join(PATH_FEATURE, "sample_density_based_4x4.pkl"))
     radon_based.to_pickle(os.path.join(PATH_FEATURE, "sample_radon_based.pkl"))
     geometry_based.to_pickle(os.path.join(PATH_FEATURE, "sample_geometry_based.pkl"))
     distance_based.to_pickle(os.path.join(PATH_FEATURE, "sample_distance_based.pkl"))
+    texture_based.to_pickle(os.path.join(PATH_FEATURE, "sample_texture_based.pkl"))
