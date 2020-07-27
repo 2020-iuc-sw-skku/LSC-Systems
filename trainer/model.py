@@ -8,6 +8,7 @@ from sklearn.ensemble import (
 )
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC
 from setup import *
 
 
@@ -51,9 +52,15 @@ def create_ann():
     dump_model(model_ann, "model_ann")
     return model_ann
 
+def create_svm():
+    model_svm = SVC(
+        
+    )
+    dump_model(model_svm, "model_svm")
+    return model_svm
 
 def create_sve():
-    models = zip(('LR', 'RF', 'GBM', 'ANN'), (create_lr(), create_rf(), create_gbm(), create_ann()))
+    models = zip(('LR', 'RF', 'GBM', 'ANN', 'SVM'), (create_lr(), create_rf(), create_gbm(), create_ann(), create_svm()))
     model_sve = VotingClassifier(list(models), voting="soft", n_jobs=-1)
     dump_model(model_sve, "model_sve")
 
