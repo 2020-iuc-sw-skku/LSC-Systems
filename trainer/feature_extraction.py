@@ -181,6 +181,46 @@ def extract_distance(x):
     return pd.Series(dist)
 
 
+def extract_angle(x):
+
+    # 배열의 중앙은 원점이고 x축 양의 방향이 시초선일 때, (x, y) 가 이루는 각의 degree 값을 구한다
+    calculate_coor = lambda x: np.argwhere(x) - (np.array(x.shape) // 2)
+    calculate_angle = lambda coor: np.rad2deg(np.arctan2(coor[:, 0], coor[:, 1])) + 180
+
+    # 원을 36등분하여 10도 간격으로 배열을 생성
+    coor_defect = calculate_coor(x == 2)
+    angle_defect = calculate_angle(coor_defect)
+    defect, _ = np.histogram(angle_defect, bins=8, range=(0, 360))
+
+    coor_whole = calculate_coor(x != 0)
+    angle_whole = calculate_angle(coor_whole)
+    whole, _ = np.histogram(angle_whole, bins=8, range=(0, 360))
+
+    angular_density = defect / whole
+    density_proportion = defect / len(coor_defect)
+
+    angle = {}
+    proportion = {}
+    feature_name_1 = lambda x: f"angle_{str(x*45)}º"
+    feature_name_2 = lambda x: f"proportion_{str(x*45)}º"
+
+    for i in range(angular_density.size):
+        angle[feature_name_1(i)] = angular_density[i]
+
+    for i in range(angular_density.size):
+        proportion[feature_name_2(i)] = density_proportion[i]
+
+    a = sorted(angle.items(), key=lambda x: x[1], reverse=True)
+    b = sorted(proportion.items(), key=lambda x: x[1], reverse=True)
+
+    angle = dict(a)
+    proportion = dict(b)
+
+    angle.update(proportion)
+
+    return pd.Series(angle)
+
+
 if __name__ == "__main__":
 
     PATH_DATA = os.path.join(PATH, CONFIG["PATH"]["PATH_DATA"])
@@ -192,8 +232,10 @@ if __name__ == "__main__":
     radon_based = data["wafer_map"].apply(extract_radon)
     geometry_based = data["wafer_map"].apply(extract_geometry)
     distance_based = data["wafer_map"].apply(extract_distance)
+    angle_based = data["wafer_map"].apply(extract_angle)
 
     density_based.to_pickle(os.path.join(PATH_FEATURE, "sample_density_based_4x4.pkl"))
     radon_based.to_pickle(os.path.join(PATH_FEATURE, "sample_radon_based.pkl"))
     geometry_based.to_pickle(os.path.join(PATH_FEATURE, "sample_geometry_based.pkl"))
     distance_based.to_pickle(os.path.join(PATH_FEATURE, "sample_distance_based.pkl"))
+    angle_based.to_pickle(os.path.join(PATH_FEATURE, "sample_angle_based.pkl"))
