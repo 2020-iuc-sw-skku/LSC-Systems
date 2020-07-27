@@ -408,12 +408,16 @@ if __name__ == "__main__":
 
     data = pd.read_pickle(os.path.join(PATH_DATA, "sample.pkl"))
 
-    density_based = data["wafer_map"].apply(extract_density, args=(6,))
-    radon_based = data["wafer_map"].apply(extract_radon)
-    geometry_based = data["wafer_map"].apply(extract_geometry)
-    distance_based = data["wafer_map"].apply(extract_distance)
-    texture_based = data["wafer_map"].apply(extract_texture)
-    mask_based = data["wafer_map"].apply(extract_mask, args=({
+    type = {"1": "wafer_map", "2": "wm_denoised_sp", "3": "wm_denoised_OP"}
+    print("1. Noised 2. Denoised(Spatial) 3. Denoised(OPTICS)\nChoose type of image before extraction: ")
+    selected_img = type[input()]
+
+    density_based = data[selected_img].apply(extract_density, args=(6,))
+    radon_based = data[selected_img].apply(extract_radon)
+    geometry_based = data[selected_img].apply(extract_geometry)
+    distance_based = data[selected_img].apply(extract_distance)
+    texture_based = data[selected_img].apply(extract_texture)
+    mask_based = data[selected_img].apply(extract_mask, args=({
         "polar_mask": get_polar_mask(4, 5, 32),
         "line_mask": get_line_mask(7, 32),
         "arc_mask": get_arc_mask(6, 12, 0.5, 1.0, 1.2, 32)
