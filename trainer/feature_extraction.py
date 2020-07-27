@@ -6,6 +6,7 @@ import cv2
 from math import log10
 from skimage.transform import radon as radon_transform
 from skimage.measure import label, regionprops
+from skimage.feature import greycomatrix, greycoprops
 from scipy.interpolate import interp1d
 from scipy.stats import mode
 from setup import PATH, CONFIG
@@ -180,6 +181,21 @@ def extract_distance(x):
     dist[feature_name("dist", "argmin")] = np.argmin(new_dist_y)
 
     return pd.Series(dist)
+
+
+def extract_texture(x):
+    feature_name = lambda s, x, y: f"{s}_{str(x).zfill(2)}_{str(y)}"
+    text = {}
+    props = ['dissimilarity', 'contrast', 'homogeneity', 'energy', 'correlation']
+
+    angles = [0, np.pi/4, np.pi/2, np.pi*3/4] #4 angles
+    glcm = greycomatrix(x , [1], angles) 
+    
+    for f in props:
+        for i in range(4):
+            text[feature_name('text', f, i)] = greycoprops(glcm, f)[0][i]
+    
+    return pd.Series(text)
 
 
 def get_polar_mask(N_a, N_c, size=32):
@@ -396,6 +412,7 @@ if __name__ == "__main__":
     radon_based = data["wafer_map"].apply(extract_radon)
     geometry_based = data["wafer_map"].apply(extract_geometry)
     distance_based = data["wafer_map"].apply(extract_distance)
+    texture_based = data["wafer_map"].apply(extract_texture)
     mask_based = data["wafer_map"].apply(extract_mask, args=({
         "polar_mask": get_polar_mask(4, 5, 32),
         "line_mask": get_line_mask(7, 32),
@@ -406,5 +423,5 @@ if __name__ == "__main__":
     radon_based.to_pickle(os.path.join(PATH_FEATURE, "sample_radon_based.pkl"))
     geometry_based.to_pickle(os.path.join(PATH_FEATURE, "sample_geometry_based.pkl"))
     distance_based.to_pickle(os.path.join(PATH_FEATURE, "sample_distance_based.pkl"))
+    texture_based.to_pickle(os.path.join(PATH_FEATURE, "sample_texture_based.pkl"))
     mask_based.to_pickle(os.path.join(PATH_FEATURE, "sample_mask_based.pkl"))
-    
