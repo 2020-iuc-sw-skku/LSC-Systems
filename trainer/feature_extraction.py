@@ -25,8 +25,8 @@ def extract_density(x, num=6):
     # 필요한 자릿수를 구한다 (특성 이름을 0으로 패딩하기 위함)
     max_digit = int(log10((num - 2) ** 2 + 4)) + 1
     # 해당 영역에서의 밀도를 구한다
-    calculate_density = lambda x: 100 * (
-        np.sum(x == 2) / np.sum(np.logical_or(x == 1, x == 2))
+    calculate_density = lambda x: (
+        np.sum(x == 2) / np.size(x)
     )
     # 특성명을 생성한다. 남는 자릿수는 0으로 패딩한다
     # (특성명을 사전순으로 배열할 때 순서가 깨지는 것을 방지하기 위함)
@@ -78,11 +78,8 @@ def extract_radon(x):
     """
 
     x = x.copy()
-    x[x == 1] = 0
+    x[x != 2] = 0
 
-    calculate_density = lambda x: 100 * (
-        np.sum(x == 2) / np.sum(np.logical_or(x == 1, x == 2))
-    )
     feature_name = lambda s, x: f"{s}_{str(x).zfill(2)}"
 
     theta = np.linspace(0, 180, max(x.shape), endpoint=False)
@@ -128,13 +125,14 @@ def extract_geometry(x):
     norm_area = np.prod(x.shape)
     norm_perimeter = np.linalg.norm(x.shape, ord=2)
 
-    label_x = label(x, connectivity=1, background=0)
+    label_x = label(x == 2, connectivity=1, background=0)
 
     if np.max(label_x) == 0:
         label_x[label_x == 0] = 1
     else:
         most_salient = mode(label_x[label_x > 0], axis=None)[0][0]
         label_x[label_x != most_salient] = 0
+        label_x[label_x == most_salient] = 1
 
     prop_x = regionprops(label_x)[0]
     geometry = {}
@@ -186,14 +184,14 @@ if __name__ == "__main__":
     PATH_DATA = os.path.join(PATH, CONFIG["PATH"]["PATH_DATA"])
     PATH_FEATURE = os.path.join(PATH, CONFIG["PATH"]["PATH_FEATURE"])
 
-    data = pd.read_pickle(os.path.join(PATH_DATA, "sample.pkl"))
+    data = pd.read_pickle(os.path.join(PATH_DATA, "denoised_sample.pkl"))
 
     density_based = data["wafer_map"].apply(extract_density, args=(6,))
     radon_based = data["wafer_map"].apply(extract_radon)
     geometry_based = data["wafer_map"].apply(extract_geometry)
     distance_based = data["wafer_map"].apply(extract_distance)
 
-    density_based.to_pickle(os.path.join(PATH_FEATURE, "sample_density_based_4x4.pkl"))
-    radon_based.to_pickle(os.path.join(PATH_FEATURE, "sample_radon_based.pkl"))
-    geometry_based.to_pickle(os.path.join(PATH_FEATURE, "sample_geometry_based.pkl"))
-    distance_based.to_pickle(os.path.join(PATH_FEATURE, "sample_distance_based.pkl"))
+    density_based.to_pickle(os.path.join(PATH_FEATURE, "denoised_density_based_4x4.pkl"))
+    radon_based.to_pickle(os.path.join(PATH_FEATURE, "denoised_radon_based.pkl"))
+    geometry_based.to_pickle(os.path.join(PATH_FEATURE, "denoised_geometry_based.pkl"))
+    distance_based.to_pickle(os.path.join(PATH_FEATURE, "denoised_distance_based.pkl"))
