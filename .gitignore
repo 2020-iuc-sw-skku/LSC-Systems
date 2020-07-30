@@ -7,6 +7,9 @@ __pycache__/
 # Visual Studio Code
 .vscode/
 
+# PyCharm
+.idea/
+
 data/*
 feature/*
 predict/*
