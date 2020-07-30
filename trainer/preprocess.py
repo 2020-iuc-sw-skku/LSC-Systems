@@ -24,9 +24,6 @@ def preprocess(raw_data):
         columns={"waferMap": "wafer_map", "failureType": "failure_type"}, inplace=True
     )
 
-    # Add new feature (wafer_map_shape: shape of wafer_map)
-    data["wafer_map_shape"] = data["wafer_map"].apply(lambda x: x.shape)
-
     # Change data type of failure_type (list -> str)
     data["failure_type"] = data["failure_type"].apply(
         lambda x: x[0][0] if len(x) > 0 else np.nan
